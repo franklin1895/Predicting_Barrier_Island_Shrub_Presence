@@ -20,14 +20,14 @@ Non_Shrub_Transects = paper_data[paper_data$Shrub_Presence == 'Non-shrub',]
 # V1: Dune Crest Elevation
 wilcox.test(Non_Shrub_Transects$Dune_Crest_Elevation,Shrub_Transects$Dune_Crest_Elevation)
 
-# V2: Lowest Recent Dune Crest Elevation
-wilcox.test(Non_Shrub_Transects$Lowest_Recent_Dune_Crest_Elevation,Shrub_Transects$Lowest_Recent_Dune_Crest_Elevation)
+# V2: Lowest Dune Crest Elevation Between Surveys
+wilcox.test(Non_Shrub_Transects$Lowest_Dune_Crest_Elevation_Between_Surveys,Shrub_Transects$Lowest_Dune_Crest_Elevation_Between_Surveys)
 
 # V3: Island Interior Width
 wilcox.test(Non_Shrub_Transects$Island_Interior_Width,Shrub_Transects$Island_Interior_Width)
 
-# V4: Narrowest Recent Island Interior Width
-wilcox.test(Non_Shrub_Transects$Narrowest_Recent_Island_Interior_Width,Shrub_Transects$Narrowest_Recent_Island_Interior_Width)
+# V4: Minimum Island Interior Width Between Surveys
+wilcox.test(Non_Shrub_Transects$Minimum_Island_Interior_Width_Between_Surveys,Shrub_Transects$Minimum_Island_Interior_Width_Between_Surveys)
 
 # V5: Beach Width
 wilcox.test(Non_Shrub_Transects$Beach_Width,Shrub_Transects$Beach_Width)
@@ -41,29 +41,56 @@ wilcox.test(Non_Shrub_Transects$Change_in_Island_Interior_Width,Shrub_Transects$
 # V8: Change in Beach Width
 wilcox.test(Non_Shrub_Transects$Change_in_Beach_Width,Shrub_Transects$Change_in_Beach_Width)
 
+########################
+# Check correlation between IIWNR and DCE for all data and for shrub and non-shrub transects
+
+# Test linear regression for all data
+Linear_DCE_IIWNR = lm(formula = Dune_Crest_Elevation ~ Minimum_Island_Interior_Width_Between_Surveys,data =paper_data)
+summary(Linear_DCE_IIWNR)
+
+# Test polynomial regression for all data
+Poly_DCE_IIWNR = lm(formula = Dune_Crest_Elevation ~ poly(Minimum_Island_Interior_Width_Between_Surveys,2, raw = TRUE),data =paper_data)
+summary(Poly_DCE_IIWNR)
+
+# Test linear regression for shrub data 
+Linear_Shrub = lm(formula = Dune_Crest_Elevation ~ Minimum_Island_Interior_Width_Between_Surveys,data = Shrub_Transects)
+summary(Linear_Shrub)
+
+# Test polynomial regression for shrub data 
+Poly_Shrub = lm(formula = Dune_Crest_Elevation ~ poly(Minimum_Island_Interior_Width_Between_Surveys,2, raw = TRUE),data =Shrub_Transects)
+summary(Poly_Shrub)
+
+# Test linear regression for shrubless data 
+Linear_Shrubless = lm(formula = Dune_Crest_Elevation ~ Minimum_Island_Interior_Width_Between_Surveys,data = Non_Shrub_Transects)
+summary(Linear_Shrubless)
+
+# Test polynomial regression for shrubless data 
+Poly_Shrubless = lm(formula = Dune_Crest_Elevation ~ poly(Minimum_Island_Interior_Width_Between_Surveys,2, raw = TRUE),data =Non_Shrub_Transects)
+summary(Poly_Shrubless)
+
 ##################
 # Separate out all the data into 4 categories based on DT thresholds
 
 Total_index = c(1:1551)
 
 # Category 1 (IIWNR < 159 m)
-Category_1_Index = paper_data$Narrowest_Recent_Island_Interior_Width < 159
+Category_1_Index = paper_data$Minimum_Island_Interior_Width_Between_Surveys < 159
 Category_1_Data = paper_data[Category_1_Index,]
 
 # Category 2 (IIWNR > 159 m & DCE < 1.9 m)
-Category_2_Width_Index = Total_index[paper_data$Narrowest_Recent_Island_Interior_Width > 159 & paper_data$Narrowest_Recent_Island_Interior_Width < 495]
+Category_2_Width_Index = Total_index[paper_data$Minimum_Island_Interior_Width_Between_Surveys > 159 & paper_data$Minimum_Island_Interior_Width_Between_Surveys < 495]
 Category_2_Dune_Elev_Index = Total_index[paper_data$Dune_Crest_Elevation < 1.9]
 Category_2_Index = intersect(Category_2_Width_Index,Category_2_Dune_Elev_Index)
 Category_2_Data = paper_data[Category_2_Index,]
 
 # Category 3 (IIWNR > 498 m & DCE < 1.9 m))
-Category_3_Width_Index = Total_index[paper_data$Narrowest_Recent_Island_Interior_Width > 495]
+Category_3_Width_Index = Total_index[paper_data$Minimum_Island_Interior_Width_Between_Surveys > 495]
 Category_3_Dune_Elev_Index = Total_index[paper_data$Dune_Crest_Elevation < 1.9]
 Category_3_Index = intersect(Category_3_Width_Index,Category_3_Dune_Elev_Index)
 Category_3_Data = paper_data[Category_3_Index,]
 
 # Category 4 (IIWNR > 159 m & DCE > 1.9 m))
-Category_4_Width_Index = Total_index[paper_data$Narrowest_Recent_Island_Interior_Width > 159]
+Category_4_Width_Index = Total_index[paper_data$Minimum_Island_Interior_Width_Between_Surveys > 159]
 Category_4_Dune_Elev_Index = Total_index[paper_data$Dune_Crest_Elevation > 1.9]
 Category_4_Index = intersect(Category_4_Width_Index,Category_4_Dune_Elev_Index)
 Category_4_Data = paper_data[Category_4_Index,]
@@ -118,8 +145,8 @@ Table_3_DT_Validation_Matrix = confusionMatrix(DT_Validation_Prediction, Validat
 boxplot(Non_Shrub_Transects$Dune_Crest_Elevation, Shrub_Transects$Dune_Crest_Elevation, ylab = 'Dune Crest Elevation (m)', names = c('Non-shrub','Shrub'),
         col = c('dodgerblue','darkgreen'),cex.axis = 1.5, cex.lab = 1.5, cex.main =1.5, cex.sub = 1.5, ylim = c(0,4.25))
 
-# V2: Lowest Recent Dune Crest Elevation
-boxplot(Non_Shrub_Transects$Lowest_Recent_Dune_Crest_Elevation,Shrub_Transects$Lowest_Recent_Dune_Crest_Elevation,ylab = 'Lowest Recent Dune Crest Elevation (m)', names = c('Non-shrub','Shrub'),
+# V2: Lowest Dune Crest Elevation Between Surveys
+boxplot(Non_Shrub_Transects$Lowest_Dune_Crest_Elevation_Between_Surveys,Shrub_Transects$Lowest_Dune_Crest_Elevation_Between_Surveys,ylab = 'Lowest Dune Crest Elevation Between Surveys (m)', names = c('Non-shrub','Shrub'),
         col = c('dodgerblue','darkgreen'),cex.axis = 1.5, cex.lab = 1.5, cex.main =1.5, cex.sub = 1.5,ylim = c(0,4.25))
 
 # V3: Island Interior Width
@@ -127,8 +154,8 @@ boxplot(Non_Shrub_Transects$Island_Interior_Width,Shrub_Transects$Island_Interio
         col = c('dodgerblue','darkgreen'),cex.axis = 1.5, cex.lab = 1.5, cex.main =1.5, cex.sub = 1.5, ylim =c(-225,1500))
 
 
-# V4: Narrowest Recent Island Interior Width
-boxplot(Non_Shrub_Transects$Narrowest_Recent_Island_Interior_Width,Shrub_Transects$Narrowest_Recent_Island_Interior_Width,ylab = 'Narrowest Recent Island Interior Width(m)', names = c('Non-shrub','Shrub'),
+# V4: Minimum Island Interior Width Between Surveys
+boxplot(Non_Shrub_Transects$Minimum_Island_Interior_Width_Between_Surveys,Shrub_Transects$Minimum_Island_Interior_Width_Between_Surveys,ylab = 'Minimum Island Interior Width Between Surveys (m)', names = c('Non-shrub','Shrub'),
         col = c('dodgerblue','darkgreen'),cex.axis = 1.5, cex.lab = 1.5, cex.main =1.5, cex.sub = 1.5, ylim =c(-225,1500))
 
 # V5: Beach Width
@@ -161,13 +188,267 @@ rpart.plot(Decision_Tree)
 # Scatter plot of DCE vs IIW NR
 
 plot(paper_data$Minimum_Interior_Width,paper_data$Dune_Elevation, type = 'n', ylim = c(0.5,4.25),xlim = c(0,555), ylab = 'Dune Crest Elevation (m)',
-     xlab = 'Minimum Interior Width (m)', main = 'Dune Crest Elevation vs Lowest Recent Island Interior Width (m)')
+     xlab = 'Minimum Island Interior Width Between Surveys (m)', main = 'Dune Crest Elevation vs Minimum Island Interior Width Between Surveys (m)')
 lines( x = c(159,2000), y =c(1.9,1.9))
 lines( x = c(159,159), y =c(-1.9,19))
 lines( x = c(459,459), y =c(-1.9,1.9))
 
-points(Non_Shrub_Transects$Narrowest_Recent_Island_Interior_Width,Non_Shrub_Transects$Dune_Crest_Elevation, col ='dodgerblue', pch =2)
-points(Shrub_Transects$Narrowest_Recent_Island_Interior_Width,Shrub_Transects$Dune_Crest_Elevation, col ='darkgreen', pch =1) 
+points(Non_Shrub_Transects$Minimum_Island_Interior_Width_Between_Surveys,Non_Shrub_Transects$Dune_Crest_Elevation, col ='dodgerblue', pch =2)
+points(Shrub_Transects$Minimum_Island_Interior_Width_Between_Surveys,Shrub_Transects$Dune_Crest_Elevation, col ='darkgreen', pch =1) 
+
+#################
+# Analyze differences in shrub colonization and removal
+
+# Smith
+Smith_Removal_2011 = read.csv('Shrub_Colonization_Removal_Data/Smith_Removal_2011.csv')
+Smith_Removal_2016 = read.csv('Shrub_Colonization_Removal_Data/Smith_Removal_2016.csv')
+
+# Cedar
+Cedar_Removal_2011 = read.csv('Shrub_Colonization_Removal_Data/Cedar_Removal_2011.csv')
+Cedar_Colonization_2016 = read.csv('Shrub_Colonization_Removal_Data/Cedar_Colonization_2016.csv')
+
+# Cobb
+Cobb_Removal_2011 = read.csv('Shrub_Colonization_Removal_Data/Cobb_Removal_2011.csv')
+Cobb_Colonization_2011 = read.csv('Shrub_Colonization_Removal_Data/Cobb_Colonization_2011.csv')
+Cobb_Removal_2016 = read.csv('Shrub_Colonization_Removal_Data/Cobb_Removal_2016.csv')
+
+# Hog
+Hog_Colonization_2011 = read.csv('Shrub_Colonization_Removal_Data/Hog_Colonization_2011.csv')
+Hog_Colonization_2016 = read.csv('Shrub_Colonization_Removal_Data/Hog_Colonization_2016.csv')
+
+# Parramore
+Parramore_Removal_2011 = read.csv('Shrub_Colonization_Removal_Data/Parramore_Removal_2011.csv')
+Parramore_Removal_2016 = read.csv('Shrub_Colonization_Removal_Data/Parramore_Removal_2016.csv')
+
+# Wreck
+Wreck_Colonization_2011 = read.csv('Shrub_Colonization_Removal_Data/Wreck_Colonization_2011.csv')
+Wreck_Colonization_2016 = read.csv('Shrub_Colonization_Removal_Data/Wreck_Colonization_2016.csv')
+
+# Transect Numbers
+
+# Smith
+Smith_Removal_2011 = Smith_Removal_2011$Automorph_Transect_ID
+Smith_Removal_2016 = Smith_Removal_2016$Automorph_Transect_ID
+
+# Cedar
+Cedar_Removal_2011 = Cedar_Removal_2011$Automorph_Transect_ID
+Cedar_Colonization_2016 = Cedar_Colonization_2016$Automorph_Transect_ID
+
+# Cobb
+Cobb_Removal_2011 = Cobb_Removal_2011$Automorph_Transect_ID
+Cobb_Colonization_2011 = Cobb_Colonization_2011$Automorph_Transect_ID
+Cobb_Removal_2016 = Cobb_Removal_2016$Automorph_Transect_ID
+
+# Hog
+Hog_Colonization_2011 = Hog_Colonization_2011$Automorph_Transect_ID
+Hog_Colonization_2016 = Hog_Colonization_2016$Automorph_Transect_ID
+
+# Parramore
+Parramore_Removal_2011 = Parramore_Removal_2011$Automorph_Transect_ID
+Parramore_Removal_2016 = Parramore_Removal_2016$Automorph_Transect_ID
+
+# Wreck
+Wreck_Colonization_2011 = Wreck_Colonization_2011$Automorph_Transect_ID
+Wreck_Colonization_2016 = Wreck_Colonization_2016$Automorph_Transect_ID
+
+
+# Load Morphometric data
+
+Morphometrics_2010 = paper_data[paper_data$Year == 2010,]
+Morphometrics_2016 = paper_data[paper_data$Year == 2016,]
+Morphometrics_2017 = paper_data[paper_data$Year == 2017,]
+
+# Smith
+Smith_2010 = Morphometrics_2010[Morphometrics_2010$Island_Name =='Smith',]
+Smith_2016 = Morphometrics_2016[Morphometrics_2016$Island_Name =='Smith',]
+Smith_2017 = Morphometrics_2017[Morphometrics_2017$Island_Name =='Smith',]
+
+# Cedar
+Cedar_2010 = Morphometrics_2010[Morphometrics_2010$Island_Name =='Cedar',]
+Cedar_2016 = Morphometrics_2016[Morphometrics_2016$Island_Name =='Cedar',]
+Cedar_2017 = Morphometrics_2017[Morphometrics_2017$Island_Name =='Cedar',]
+
+# Cobb
+Cobb_2010 = Morphometrics_2010[Morphometrics_2010$Island_Name =='Cobb',]
+Cobb_2016 = Morphometrics_2016[Morphometrics_2016$Island_Name =='Cobb',]
+Cobb_2017 = Morphometrics_2017[Morphometrics_2017$Island_Name =='Cobb',]
+
+# Hog
+Hog_2010 = Morphometrics_2010[Morphometrics_2010$Island_Name =='Hog',]
+Hog_2016 = Morphometrics_2016[Morphometrics_2016$Island_Name =='Hog',]
+Hog_2017 = Morphometrics_2017[Morphometrics_2017$Island_Name =='Hog',]
+
+# Parramore
+Parramore_2010 = Morphometrics_2010[Morphometrics_2010$Island_Name =='Parramore',]
+Parramore_2016 = Morphometrics_2016[Morphometrics_2016$Island_Name =='Parramore',]
+Parramore_2017 = Morphometrics_2017[Morphometrics_2017$Island_Name =='Parramore',]
+
+# Wreck
+Wreck_2010 = Morphometrics_2010[Morphometrics_2010$Island_Name =='Wreck',]
+Wreck_2016 = Morphometrics_2016[Morphometrics_2016$Island_Name =='Wreck',]
+Wreck_2017 = Morphometrics_2017[Morphometrics_2017$Island_Name =='Wreck',]
+
+# Smith 
+Smith_Removal_Morpho_2011 = c() 
+for (i in seq(1:length(Smith_Removal_2011))){
+  x = Smith_2010[Smith_2010$Transect_Number == Smith_Removal_2011[i],]
+  Smith_Removal_Morpho_2011 = rbind(Smith_Removal_Morpho_2011,x)
+}
+
+Smith_Removal_Morpho_2016 = c() 
+for (i in seq(1:length(Smith_Removal_2016))){
+  x = Smith_2016[Smith_2016$Transect_Number == Smith_Removal_2016[i],]
+  Smith_Removal_Morpho_2016 = rbind(Smith_Removal_Morpho_2016,x)
+}
+for (i in seq(1:length(Smith_Removal_2016))){
+  x = Smith_2017[Smith_2017$Transect_Number == Smith_Removal_2016[i],]
+  Smith_Removal_Morpho_2016 = rbind(Smith_Removal_Morpho_2016,x)
+}
+
+# Cedar
+
+Cedar_Removal_Morpho_2011 = c() 
+for (i in seq(1:length(Cedar_Removal_2011))){
+  x = Cedar_2010[Cedar_2010$Transect_Number == Cedar_Removal_2011[i],]
+  Cedar_Removal_Morpho_2011 = rbind(Cedar_Removal_Morpho_2011,x)
+}
+
+Cedar_Colonization_Morpho_2016 = c() 
+for (i in seq(1:length(Cedar_Colonization_2016))){
+  x = Cedar_2016[Cedar_2016$Transect_Number == Cedar_Colonization_2016[i],]
+  Cedar_Colonization_Morpho_2016 = rbind(Cedar_Colonization_Morpho_2016,x)
+}
+for (i in seq(1:length(Cedar_Colonization_2016))){
+  x = Cedar_2017[Cedar_2017$Transect_Number == Cedar_Colonization_2016[i],]
+  Cedar_Colonization_Morpho_2016 = rbind(Cedar_Colonization_Morpho_2016,x)
+}
+
+
+# Cobb
+Cobb_Removal_Morpho_2011 = c() 
+for (i in seq(1:length(Cobb_Removal_2011))){
+  x = Cobb_2010[Cobb_2010$Transect_Number == Cobb_Removal_2011[i],]
+  Cobb_Removal_Morpho_2011 = rbind(Cobb_Removal_Morpho_2011,x)
+}
+
+Cobb_Colonization_Morpho_2011 = c()
+for (i in seq(1:length(Cobb_Colonization_2011))){
+  x = Cobb_2010[Cobb_2010$Transect_Number == Cobb_Colonization_2011[i],]
+  Cobb_Colonization_Morpho_2011 = rbind(Cobb_Colonization_Morpho_2011,x)
+}
+
+Cobb_Removal_Morpho_2016 = c() 
+for (i in seq(1:length(Cobb_Removal_2016))){
+  x = Cobb_2016[Cobb_2016$Transect_Number == Cobb_Removal_2016[i],]
+  Cobb_Removal_Morpho_2016 = rbind(Cobb_Removal_Morpho_2016,x)
+}
+for (i in seq(1:length(Cobb_Removal_2016))){
+  x = Cobb_2017[Cobb_2017$Transect_Number == Cobb_Removal_2016[i],]
+  Cobb_Removal_Morpho_2016 = rbind(Cobb_Removal_Morpho_2016,x)
+}
+
+# Hog
+Hog_Colonization_Morpho_2011 = c() 
+for (i in seq(1:length(Hog_Colonization_2011))){
+  x = Hog_2010[Hog_2010$Transect_Number == Hog_Colonization_2011[i],]
+  Hog_Colonization_Morpho_2011 = rbind(Hog_Colonization_Morpho_2011,x)
+}
+
+Hog_Colonization_Morpho_2016 = c() 
+for (i in seq(1:length(Hog_Colonization_2016))){
+  x = Hog_2016[Hog_2016$Transect_Number == Hog_Colonization_2016[i],]
+  Hog_Colonization_Morpho_2016 = rbind(Hog_Colonization_Morpho_2016,x)
+}
+for (i in seq(1:length(Hog_Colonization_2016))){
+  x = Hog_2017[Hog_2017$Transect_Number == Hog_Colonization_2016[i],]
+  Hog_Colonization_Morpho_2016 = rbind(Hog_Colonization_Morpho_2016,x)
+}
+
+# Parramore
+Parramore_Removal_Morpho_2011 = c() 
+for (i in seq(1:length(Parramore_Removal_2011))){
+  x = Parramore_2010[Parramore_2010$Transect_Number == Parramore_Removal_2011[i],]
+  Parramore_Removal_Morpho_2011 = rbind(Parramore_Removal_Morpho_2011,x)
+}
+
+Parramore_Removal_Morpho_2016 = c() 
+for (i in seq(1:length(Parramore_Removal_2016))){
+  x = Parramore_2016[Parramore_2016$Transect_Number == Parramore_Removal_2016[i],]
+  Parramore_Removal_Morpho_2016 = rbind(Parramore_Removal_Morpho_2016,x)
+}
+for (i in seq(1:length(Parramore_Removal_2016))){
+  x = Parramore_2017[Parramore_2017$Transect_Number == Parramore_Removal_2016[i],]
+  Parramore_Removal_Morpho_2016 = rbind(Parramore_Removal_Morpho_2016,x)
+}
+
+
+# Wreck
+Wreck_Colonization_Morpho_2011 = c() 
+for (i in seq(1:length(Wreck_Colonization_2011))){
+  x = Wreck_2010[Wreck_2010$Transect_Number == Wreck_Colonization_2011[i],]
+  Wreck_Colonization_Morpho_2011 = rbind(Wreck_Colonization_Morpho_2011,x)
+}
+
+Wreck_Colonization_Morpho_2016 = c() 
+for (i in seq(1:length(Wreck_Colonization_2016))){
+  x = Wreck_2016[Wreck_2016$Transect_Number == Wreck_Colonization_2016[i],]
+  Wreck_Colonization_Morpho_2016 = rbind(Wreck_Colonization_Morpho_2016,x)
+}
+for (i in seq(1:length(Wreck_Colonization_2016))){
+  x = Wreck_2017[Wreck_2017$Transect_Number == Wreck_Colonization_2016[i],]
+  Wreck_Colonization_Morpho_2016 = rbind(Wreck_Colonization_Morpho_2016,x)
+}
+
+# Combine All Colonization
+Shrub_Colonization = rbind(Cedar_Colonization_Morpho_2016,Cobb_Colonization_Morpho_2011,
+                           Hog_Colonization_Morpho_2011,Hog_Colonization_Morpho_2016,Wreck_Colonization_Morpho_2011,Wreck_Colonization_Morpho_2016)
+
+# Shrub Removal
+Shrub_Removal = rbind(Smith_Removal_Morpho_2011,Smith_Removal_Morpho_2016,Cedar_Removal_Morpho_2011, 
+                      Cobb_Removal_Morpho_2011,Cobb_Removal_Morpho_2016,Parramore_Removal_Morpho_2011,Parramore_Removal_Morpho_2016)
+
+
+# Shrub Colonization Transects Compared to Minimum-Island-Interior Width Between Surveys
+Threshold_Width_Colonization = Shrub_Colonization[Shrub_Colonization$Minimum_Island_Interior_Width_Between_Surveys > 158.6,]
+Threshold_Width_Colonization_100 = Shrub_Colonization[Shrub_Colonization$Minimum_Island_Interior_Width_Between_Surveys > 100,]
+
+lacks_Threshold_Width_Colonization = Shrub_Colonization[Shrub_Colonization$Minimum_Island_Interior_Width_Between_Surveys < 158.6,]
+Percent_Threshold = length(Threshold_Width_Colonization$Dune_Crest_Elevation)/length(Shrub_Colonization$Dune_Crest_Elevation)
+Percent_Threshold_100 = length(Threshold_Width_Colonization_100$Dune_Crest_Elevation)/length(Shrub_Colonization$Dune_Crest_Elevation)
+
+
+
+Threshold_Width_Colonization_Current = Shrub_Colonization[Shrub_Colonization$Island_Interior_Width > 158.6,]
+Threshold_Width_Colonization_Current_100 = Shrub_Colonization[Shrub_Colonization$Island_Interior_Width > 100,]
+
+Percent_Threshold_Current = length(Threshold_Width_Colonization_Current$Dune_Crest_Elevation)/length(Shrub_Colonization$Dune_Crest_Elevation)
+Percent_Threshold_100_Current = length(Threshold_Width_Colonization_Current_100$Dune_Crest_Elevation)/length(Shrub_Colonization$Dune_Crest_Elevation)
+
+
+lacks_Threshold_Width_Colonization_Current = Shrub_Colonization[Shrub_Colonization$Island_Interior_Width < 158.6,]
+
+
+# Shrub Removal
+lacks_Threshold_Width_Removal = Shrub_Removal[Shrub_Removal$Minimum_Island_Interior_Width_Between_Surveys < 158.6,]
+Percent_Threshold_Removal = length(lacks_Threshold_Width_Removal$Dune_Crest_Elevation)/length(Shrub_Removal$Dune_Crest_Elevation)
+
+
+# Dune Crest Elevation
+Threshold_Elevation_Colonization = Shrub_Colonization[Shrub_Colonization$Dune_Crest_Elevation > 1.89,]
+Percent_Threshold_Elevation = length(Threshold_Elevation_Colonization$Dune_Crest_Elevation)/length(Shrub_Colonization$Dune_Crest_Elevation)
+
+Threshold_Elevation_Removal = Shrub_Removal[Shrub_Removal$Dune_Crest_Elevation > 1.89,]
+Percent_Threshold_Elevation = length(Threshold_Elevation_Removal$Dune_Crest_Elevation)/length(Shrub_Removal$Dune_Crest_Elevation)
+
+# Both
+# 160 m and 1.9 m
+# Removal
+Sufficent_Width_Elevation_Shrub_Removal = Shrub_Removal[Shrub_Removal$Dune_Crest_Elevation > 1.89 & Shrub_Removal$Minimum_Island_Interior_Width_Between_Surveys > 159,]
+Sufficent_Width_Elevation_Shrub_Removal_Percent = length(Sufficent_Width_Elevation_Shrub_Removal$X)/length(Shrub_Removal$X)
+
+# Colonization
+Sufficent_Width_Elevation_Shrub_Colonization = Shrub_Colonization[Shrub_Colonization$Dune_Crest_Elevation > 1.89 & Shrub_Colonization$Minimum_Island_Interior_Width_Between_Surveys > 159,]
+Sufficent_Width_Elevation_Shrub_Colonization_Percent = length(Sufficent_Width_Elevation_Shrub_Colonization$X)/length(Shrub_Colonization$X)
 
 #################
 # Figure 8
@@ -175,100 +456,26 @@ points(Shrub_Transects$Narrowest_Recent_Island_Interior_Width,Shrub_Transects$Du
 Fig_8 = varImpPlot(RF_Training_Values, type = 1, scale = FALSE, cex =1, main = 'Variable Importance')
 
 #############
-# Figure 11
+# Salinity Measures
+Salinity_Dataset = read.csv('Sabo_Thesis_Data_Combined.csv',skip = 21, header = T, comment.char = "#")
 
-# prep data for plotting in Figure 11
+Salinity_Values = na.omit(Salinity_Dataset$soil_chlorides)
+Mean_Salinity = mean(Salinity_Values)
+Standard_Deviation_Salinity = sd(Salinity_Values)
 
-# Category 1+2 seperated by island
-Cat_1_2_Smith = rbind(Category_1_Data[Category_1_Data$Island_Name == 'Smith',],Category_2_Data[Category_2_Data$Island_Name == 'Smith',])
-Cat_1_2_Myrtle = rbind(Category_1_Data[Category_1_Data$Island_Name == 'Myrtle',],Category_2_Data[Category_2_Data$Island_Name == 'Myrtle',])
-Cat_1_2_Ship = rbind(Category_1_Data[Category_1_Data$Island_Name == 'Ship',],Category_2_Data[Category_2_Data$Island_Name == 'Ship',])
-Cat_1_2_Wreck = rbind(Category_1_Data[Category_1_Data$Island_Name == 'Wreck',],Category_2_Data[Category_2_Data$Island_Name == 'Wreck',])
-Cat_1_2_Cobb = rbind(Category_1_Data[Category_1_Data$Island_Name == 'Cobb',],Category_2_Data[Category_2_Data$Island_Name == 'Cobb',])
-Cat_1_2_Hog = rbind(Category_1_Data[Category_1_Data$Island_Name == 'Hog',],Category_2_Data[Category_2_Data$Island_Name == 'Hog',])
-Cat_1_2_Parramore = rbind(Category_1_Data[Category_1_Data$Island_Name == 'Parramore',],Category_2_Data[Category_2_Data$Island_Name == 'Parramore',])
-Cat_1_2_Cedar = rbind(Category_1_Data[Category_1_Data$Island_Name == 'Cedar',],Category_2_Data[Category_2_Data$Island_Name == 'Cedar',])
+# Shrub transects
+Sabo_Shrub_Transects = Salinity_Dataset[Salinity_Dataset$Species == 'Shrub',]
+Sabo_Salinity = na.omit(Sabo_Shrub_Transects$soil_chlorides)
+Mean_Sabo_Salinity = mean(Sabo_Salinity)
+SD_Sabo_Salinity = sd(Sabo_Salinity)
 
-# Category 3+4 seperated by island
-Cat_3_4_Smith = rbind(Category_3_Data[Category_3_Data$Island_Name == 'Smith',],Category_4_Data[Category_4_Data$Island_Name == 'Smith',])
-Cat_3_4_Myrtle = rbind(Category_3_Data[Category_3_Data$Island_Name == 'Myrtle',],Category_4_Data[Category_4_Data$Island_Name == 'Myrtle',])
-Cat_3_4_Ship = rbind(Category_3_Data[Category_3_Data$Island_Name == 'Ship',],Category_4_Data[Category_4_Data$Island_Name == 'Ship',])
-Cat_3_4_Wreck = rbind(Category_3_Data[Category_3_Data$Island_Name == 'Wreck',],Category_4_Data[Category_4_Data$Island_Name == 'Wreck',])
-Cat_3_4_Cobb = rbind(Category_3_Data[Category_3_Data$Island_Name == 'Cobb',],Category_4_Data[Category_4_Data$Island_Name == 'Cobb',])
-Cat_3_4_Hog = rbind(Category_3_Data[Category_3_Data$Island_Name == 'Hog',],Category_4_Data[Category_4_Data$Island_Name == 'Hog',])
-Cat_3_4_Parramore = rbind(Category_3_Data[Category_3_Data$Island_Name == 'Parramore',],Category_4_Data[Category_4_Data$Island_Name == 'Parramore',])
-Cat_3_4_Cedar = rbind(Category_3_Data[Category_3_Data$Island_Name == 'Cedar',],Category_4_Data[Category_4_Data$Island_Name == 'Cedar',])
+# See what percent are above thresholds are above salinity thresholds
 
-# Percentage of total island transects represented by Cat 1 + 2
-Percent_Cat_1_2_Smith = (length(Cat_1_2_Smith$Shrub_Presence) / length(Total_index[paper_data$Island_Name == 'Smith']))*100
-Percent_Cat_1_2_Myrtle = (length(Cat_1_2_Myrtle$Shrub_Presence) / length(Total_index[paper_data$Island_Name == 'Myrtle']))*100
-Percent_Cat_1_2_Ship = (length(Cat_1_2_Ship$Shrub_Presence) / length(Total_index[paper_data$Island_Name == 'Ship']))*100
-Percent_Cat_1_2_Wreck = (length(Cat_1_2_Wreck$Shrub_Presence) / length(Total_index[paper_data$Island_Name == 'Wreck']))*100
-Percent_Cat_1_2_Cobb = (length(Cat_1_2_Cobb$Shrub_Presence) / length(Total_index[paper_data$Island_Name == 'Cobb']))*100
-Percent_Cat_1_2_Hog = (length(Cat_1_2_Hog$Shrub_Presence) / length(Total_index[paper_data$Island_Name == 'Hog']))*100
-Percent_Cat_1_2_Parramore = (length(Cat_1_2_Parramore$Shrub_Presence) / length(Total_index[paper_data$Island_Name == 'Parramore']))*100
-Percent_Cat_1_2_Cedar = (length(Cat_1_2_Cedar$Shrub_Presence) / length(Total_index[paper_data$Island_Name == 'Cedar']))*100
+Highest_Threshold = 500
+Majority_Threshold = 50
 
-# Percentage of total island transects represented by Cat 3 + 4
-Percent_Cat_3_4_Smith = (length(Cat_3_4_Smith$Shrub_Presence) / length(Total_index[paper_data$Island_Name == 'Smith']))*100
-Percent_Cat_3_4_Myrtle = (length(Cat_3_4_Myrtle$Shrub_Presence) / length(Total_index[paper_data$Island_Name == 'Myrtle']))*100
-Percent_Cat_3_4_Ship = (length(Cat_3_4_Ship$Shrub_Presence) / length(Total_index[paper_data$Island_Name == 'Ship']))*100
-Percent_Cat_3_4_Wreck = (length(Cat_3_4_Wreck$Shrub_Presence) / length(Total_index[paper_data$Island_Name == 'Wreck']))*100
-Percent_Cat_3_4_Cobb = (length(Cat_3_4_Cobb$Shrub_Presence) / length(Total_index[paper_data$Island_Name == 'Cobb']))*100
-Percent_Cat_3_4_Hog = (length(Cat_3_4_Hog$Shrub_Presence) / length(Total_index[paper_data$Island_Name == 'Hog']))*100
-Percent_Cat_3_4_Parramore = (length(Cat_3_4_Parramore$Shrub_Presence) / length(Total_index[paper_data$Island_Name == 'Parramore']))*100
-Percent_Cat_3_4_Cedar = (length(Cat_3_4_Cedar$Shrub_Presence) / length(Total_index[paper_data$Island_Name == 'Cedar']))*100
+Above_Highest_Threshold = Salinity_Values[Salinity_Values < 500]
+Above_Majority_Threshold = Salinity_Values[Salinity_Values < 50]
 
-# Calculate the actual observed shrub presence on each island
-Actual_Shrub_Amount_Smith = paper_data[paper_data$Island_Name == 'Smith' & paper_data$Shrub_Presence == 'Shrub',]
-Actual_Shrub_Amount_Myrtle = paper_data[paper_data$Island_Name == 'Myrtle' & paper_data$Shrub_Presence == 'Shrub',]
-Actual_Shrub_Amount_Ship = paper_data[paper_data$Island_Name == 'Ship' & paper_data$Shrub_Presence == 'Shrub',]
-Actual_Shrub_Amount_Wreck = paper_data[paper_data$Island_Name == 'Wreck' & paper_data$Shrub_Presence == 'Shrub',]
-Actual_Shrub_Amount_Cobb = paper_data[paper_data$Island_Name == 'Cobb' & paper_data$Shrub_Presence == 'Shrub',]
-Actual_Shrub_Amount_Hog = paper_data[paper_data$Island_Name == 'Hog' & paper_data$Shrub_Presence == 'Shrub',]
-Actual_Shrub_Amount_Parramore = paper_data[paper_data$Island_Name == 'Parramore' & paper_data$Shrub_Presence == 'Shrub',]
-Actual_Shrub_Amount_Cedar = paper_data[paper_data$Island_Name == 'Cedar' & paper_data$Shrub_Presence == 'Shrub',]
-
-# Calculate the % of transects on each island with observed shrub presence
-Percent_Actual_Shrub_Amount_Smith = (length(Actual_Shrub_Amount_Smith$Shrub_Presence)/length(Total_index[paper_data$Island_Name == 'Smith']))*100
-Percent_Actual_Shrub_Amount_Myrtle = (length(Actual_Shrub_Amount_Myrtle$Shrub_Presence)/length(Total_index[paper_data$Island_Name == 'Myrtle']))*100
-Percent_Actual_Shrub_Amount_Ship = (length(Actual_Shrub_Amount_Ship$Shrub_Presence)/length(Total_index[paper_data$Island_Name == 'Ship']))*100
-Percent_Actual_Shrub_Amount_Wreck = (length(Actual_Shrub_Amount_Wreck$Shrub_Presence)/length(Total_index[paper_data$Island_Name == 'Wreck']))*100
-Percent_Actual_Shrub_Amount_Cobb = (length(Actual_Shrub_Amount_Cobb$Shrub_Presence)/length(Total_index[paper_data$Island_Name == 'Cobb']))*100
-Percent_Actual_Shrub_Amount_Hog = (length(Actual_Shrub_Amount_Hog$Shrub_Presence)/length(Total_index[paper_data$Island_Name == 'Hog']))*100
-Percent_Actual_Shrub_Amount_Parramore = (length(Actual_Shrub_Amount_Parramore$Shrub_Presence)/length(Total_index[paper_data$Island_Name == 'Parramore']))*100
-Percent_Actual_Shrub_Amount_Cedar = (length(Actual_Shrub_Amount_Cedar$Shrub_Presence)/length(Total_index[paper_data$Island_Name == 'Cedar']))*100
-
-# Calculate the actual observed shrub presence on each island
-Actual_Non_shrub_Amount_Smith = paper_data[paper_data$Island_Name == 'Smith' & paper_data$Shrub_Presence == 'Non-shrub',]
-Actual_Non_shrub_Amount_Myrtle = paper_data[paper_data$Island_Name == 'Myrtle' & paper_data$Shrub_Presence == 'Non-shrub',]
-Actual_Non_shrub_Amount_Ship = paper_data[paper_data$Island_Name == 'Ship' & paper_data$Shrub_Presence == 'Non-shrub',]
-Actual_Non_shrub_Amount_Wreck = paper_data[paper_data$Island_Name == 'Wreck' & paper_data$Shrub_Presence == 'Non-shrub',]
-Actual_Non_shrub_Amount_Cobb = paper_data[paper_data$Island_Name == 'Cobb' & paper_data$Shrub_Presence == 'Non-shrub',]
-Actual_Non_shrub_Amount_Hog = paper_data[paper_data$Island_Name == 'Hog' & paper_data$Shrub_Presence == 'Non-shrub',]
-Actual_Non_shrub_Amount_Parramore = paper_data[paper_data$Island_Name == 'Parramore' & paper_data$Shrub_Presence == 'Non-shrub',]
-Actual_Non_shrub_Amount_Cedar = paper_data[paper_data$Island_Name == 'Cedar' & paper_data$Shrub_Presence == 'Non-shrub',]
-
-# Calculate the % of transects on each island with observed shrub presence
-Percent_Actual_Non_shrub_Amount_Smith = (length(Actual_Non_shrub_Amount_Smith$Shrub_Presence)/length(Total_index[paper_data$Island_Name == 'Smith']))*100
-Percent_Actual_Non_shrub_Amount_Myrtle = (length(Actual_Non_shrub_Amount_Myrtle$Shrub_Presence)/length(Total_index[paper_data$Island_Name == 'Myrtle']))*100
-Percent_Actual_Non_shrub_Amount_Ship = (length(Actual_Non_shrub_Amount_Ship$Shrub_Presence)/length(Total_index[paper_data$Island_Name == 'Ship']))*100
-Percent_Actual_Non_shrub_Amount_Wreck = (length(Actual_Non_shrub_Amount_Wreck$Shrub_Presence)/length(Total_index[paper_data$Island_Name == 'Wreck']))*100
-Percent_Actual_Non_shrub_Amount_Cobb = (length(Actual_Non_shrub_Amount_Cobb$Shrub_Presence)/length(Total_index[paper_data$Island_Name == 'Cobb']))*100
-Percent_Actual_Non_shrub_Amount_Hog = (length(Actual_Non_shrub_Amount_Hog$Shrub_Presence)/length(Total_index[paper_data$Island_Name == 'Hog']))*100
-Percent_Actual_Non_shrub_Amount_Parramore = (length(Actual_Non_shrub_Amount_Parramore$Shrub_Presence)/length(Total_index[paper_data$Island_Name == 'Parramore']))*100
-Percent_Actual_Non_shrub_Amount_Cedar = (length(Actual_Non_shrub_Amount_Cedar$Shrub_Presence)/length(Total_index[paper_data$Island_Name == 'Cedar']))*100
-
-# Combine all % values into 1 variable for plotting
-Percent_Actual_Shrub_Amount_Total = c(Percent_Actual_Shrub_Amount_Smith,Percent_Actual_Shrub_Amount_Myrtle,Percent_Actual_Shrub_Amount_Ship,Percent_Actual_Shrub_Amount_Wreck,
-                                      Percent_Actual_Shrub_Amount_Cobb,Percent_Actual_Shrub_Amount_Hog,Percent_Actual_Shrub_Amount_Parramore,Percent_Actual_Shrub_Amount_Cedar)
-Percent_Actual_Non_shrub_Amount_Total = c(Percent_Actual_Non_shrub_Amount_Smith,Percent_Actual_Non_shrub_Amount_Myrtle,Percent_Actual_Non_shrub_Amount_Ship,Percent_Actual_Non_shrub_Amount_Wreck,
-                                          Percent_Actual_Non_shrub_Amount_Cobb,Percent_Actual_Non_shrub_Amount_Hog,Percent_Actual_Non_shrub_Amount_Parramore,Percent_Actual_Non_shrub_Amount_Cedar)
-
-Percent_Cat_1_2 = c(Percent_Cat_1_2_Smith,Percent_Cat_1_2_Myrtle,Percent_Cat_1_2_Ship,Percent_Cat_1_2_Wreck,Percent_Cat_1_2_Cobb,Percent_Cat_1_2_Hog,Percent_Cat_1_2_Parramore,Percent_Cat_1_2_Cedar)
-Percent_Cat_3_4 = c(Percent_Cat_3_4_Smith,Percent_Cat_3_4_Myrtle,Percent_Cat_3_4_Ship,Percent_Cat_3_4_Wreck,Percent_Cat_3_4_Cobb,Percent_Cat_3_4_Hog,Percent_Cat_3_4_Parramore,Percent_Cat_3_4_Cedar)
-
-# Plot Figure 11 
-Groups_Total = rbind(Percent_Cat_1_2,Percent_Actual_Non_shrub_Amount_Total,Percent_Cat_3_4,Percent_Actual_Shrub_Amount_Total)
-barplot(height = Groups_Total, beside = TRUE,names.arg = c('Smith','Myrtle','Ship','Wreck','Cobb','Hog','Parramore','Cedar'), col = c('dodgerblue','lightblue1','darkgreen','green'),
-        main = 'Total % of Transects in Low and High Shrub Probability Groups')
+Percent_Above_Highest = length(Above_Highest_Threshold)/length(Salinity_Values)
+Percent_Above_Majority = length(Above_Majority_Threshold)/length(Salinity_Values)
